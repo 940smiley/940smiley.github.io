@@ -1,0 +1,5 @@
+Feature name,Feasibility score,Estimated dev time,Expected impact,Priority rating,Recommended branch name: codex/<feature>
+Interactive repo filters/search,0.9,1-2 days,Improves discoverability across 100+ repos,High,codex/repo-filter-ui {feature: gh-pages-refresh, date: 2025-12-14, time: 00:35 UTC}
+Pinned case-study pages,0.7,2-3 days,Adds storytelling depth for ML/CV highlights,Medium,codex/case-study-pages {feature: gh-pages-refresh, date: 2025-12-14, time: 00:35 UTC}
+Lighthouse performance budget,0.8,1 day,Ensures fast loads on mobile and Pages CDN,Medium,codex/lighthouse-automation {feature: gh-pages-refresh, date: 2025-12-14, time: 00:35 UTC}
+Offline-ready static cache,0.6,2-4 days,Better reliability for demos; needs service worker,Medium,codex/pwa-shell {feature: gh-pages-refresh, date: 2025-12-14, time: 00:35 UTC}

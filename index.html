@@ -3,76 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0f0c29">
-    <title>940smiley - Projects Showcase</title>
+    <meta name="description" content="940smiley | ML & CV projects and explorations in a futuristic portfolio">
+    <meta name="theme-color" content="#0f1624">
+    <title>940smiley | Futuristic Project Deck</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-    <header class="header">
+    <header>
         <div class="container">
-            <div class="profile-section">
-                <img src="https://github.com/940smiley.png" alt="940smiley" class="avatar">
-                <div class="profile-info">
-                    <h1>940smiley</h1>
-                    <p class="bio">Python enthusiast focusing on ML and CV • Always learning</p>
+            <nav class="navbar">
+                <div class="brand">
+                    <span class="logo-dot"></span>
+                    <span>940smiley</span>
+                </div>
+                <div class="nav-actions">
+                    <a class="nav-pill" href="#featured"> <i class="fas fa-star"></i> Featured </a>
+                    <a class="nav-pill" href="#recent"> <i class="fas fa-clock"></i> Recent </a>
+                    <a class="nav-pill" href="#all"> <i class="fas fa-folder-open"></i> All Repos </a>
+                    <a class="primary-btn" href="https://github.com/940smiley" target="_blank" rel="noreferrer">
+                        <i class="fab fa-github"></i> GitHub Profile
+                    </a>
+                </div>
+            </nav>
+
+            <section class="hero">
+                <div class="hero-card">
+                    <div class="glow-orb"></div>
+                    <div class="hero-content">
+                        <img src="https://github.com/940smiley.png" alt="940smiley avatar" class="avatar">
+                        <h1>Building <span class="accent">ML/CV</span> experiments with style</h1>
+                        <p class="bio">Python-focused tinkerer pursuing computer vision, automation, and thoughtful design — always shipping the next iteration.</p>
+
+                        <div class="pill-row">
+                            <span class="pill">Machine Learning</span>
+                            <span class="pill">Computer Vision</span>
+                            <span class="pill">Data Tools</span>
+                            <span class="pill">Creative Coding</span>
+                        </div>
+
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-rocket"></i></div>
+                                <div>
+                                    <div class="metric-value">Live</div>
+                                    <div class="metric-label">GitHub Pages</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-brain"></i></div>
+                                <div>
+                                    <div class="metric-value">ML & CV</div>
+                                    <div class="metric-label">Core focus</div>
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-code"></i></div>
+                                <div>
+                                    <div class="metric-value">100+ repos</div>
+                                    <div class="metric-label">Auto-fetched</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>Signal Panel</h3>
+                    <p>A curated gateway into recent experiments, featured builds, and a living catalog of all repositories.</p>
+                    <div class="divider"></div>
+                    <div class="pill-row">
+                        <span class="pill"><i class="fas fa-shapes"></i> Featured curation</span>
+                        <span class="pill"><i class="fas fa-sparkles"></i> Neon aesthetic</span>
+                        <span class="pill"><i class="fas fa-cloud"></i> Live API data</span>
+                    </div>
+                    <div class="divider"></div>
                     <div class="social-links">
-                        <a href="https://github.com/940smiley" target="_blank" class="social-link">
+                        <a class="social-link" href="https://github.com/940smiley" target="_blank" rel="noreferrer" aria-label="GitHub">
                             <i class="fab fa-github"></i>
                         </a>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     </header>
 
-    <main class="main">
-        <div class="container">
-            <!-- Featured Projects Section -->
-            <section class="featured-section">
-                <h2 class="section-title">
-                    <i class="fas fa-star"></i>
-                    Featured Projects
-                </h2>
-                <div class="projects-grid" id="featuredProjects">
-                    <!-- Featured projects will be loaded here -->
-                </div>
-            </section>
+    <main class="container">
+        <section id="featured" class="section featured-section">
+            <div class="section-title"><i class="fas fa-star"></i> Featured Projects</div>
+            <div class="projects-grid" id="featuredProjects"></div>
+        </section>
 
-            <!-- Recent Projects Section -->
-            <section class="recent-section">
-                <h2 class="section-title">
-                    <i class="fas fa-clock"></i>
-                    Recently Updated
-                </h2>
-                <div class="projects-grid" id="recentProjects">
-                    <!-- Recent projects will be loaded here -->
-                </div>
-            </section>
+        <section id="recent" class="section recent-section">
+            <div class="section-title"><i class="fas fa-clock"></i> Recently Updated</div>
+            <div class="projects-grid" id="recentProjects"></div>
+        </section>
 
-            <!-- All Projects Section -->
-            <section class="all-projects-section">
-                <h2 class="section-title">
-                    <i class="fas fa-folder"></i>
-                    All Projects
-                </h2>
-                <div class="projects-grid" id="allProjects">
-                    <!-- All projects will be loaded here -->
-                </div>
-            </section>
-        </div>
+        <section id="all" class="section all-projects-section">
+            <div class="section-title"><i class="fas fa-folder"></i> All Projects</div>
+            <div class="projects-grid" id="allProjects"></div>
+        </section>
     </main>
 
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 940smiley. Built with GitHub Pages.</p>
-        </div>
+        <small>
+            <i class="fas fa-bolt"></i>
+            <span>Crafted for a tech-forward GitHub Pages presence • Updated 2025</span>
+        </small>
     </footer>
 
     <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Loading projects...</p>
+        <div>
+            <div class="loader-ring"></div>
+            <p>Synchronizing with GitHub API...</p>
+        </div>
     </div>
 
     <script src="script.js"></script>
