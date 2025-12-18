@@ -1,6 +1,6 @@
 class GitHubPortfolio {
     constructor() {
-        this.username = '940smiley';
+        this.username = process.env.GITHUB_USERNAME || '940smiley';
         this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
         this.languageColors = {
             Python: '#3776ab',
