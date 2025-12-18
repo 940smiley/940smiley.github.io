@@ -125,6 +125,11 @@ class GitHubPortfolio {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+
     showError() {
         ['featuredProjects', 'recentProjects', 'allProjects'].forEach(id => {
             const container = document.getElementById(id);
