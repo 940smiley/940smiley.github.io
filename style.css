@@ -401,7 +401,7 @@ header {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    box-shadow: 0 0 12px rgba(0, 224, 255, 0.35);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
 .no-repos {
