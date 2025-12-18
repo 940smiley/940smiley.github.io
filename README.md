@@ -20,7 +20,7 @@ A futuristic, neon-inspired GitHub Pages portfolio that automatically pulls repo
 
 ## Dependency Map
 - Core: Static HTML/CSS/JS served via GitHub Pages
-- Data: GitHub REST API (users/:username/repos) for repository metadata
+- **Data**: GitHub REST API (`users/:username/repos`) for repository metadata. *(See `Future-Upgrades.csv` for a planned migration to GraphQL v4.)*
 - Styling: Google Fonts (Orbitron, Poppins), Font Awesome 6.5.2 CDN icons
 - Tooling: Vanilla JS rendering; no build tooling required
 
