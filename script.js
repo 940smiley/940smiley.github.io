@@ -93,9 +93,9 @@ class GitHubPortfolio {
             <article class="project-card ${isFeatured ? 'featured' : ''}">
                 ${isFeatured ? '<span class="featured-badge">Featured</span>' : ''}
                 <div class="project-header">
-                    <a href="${repo.html_url}" target="_blank" rel="noreferrer" class="project-title">
+                    <a href="${this.escapeHtml(repo.html_url)}" target="_blank" rel="noreferrer" class="project-title">
                         <i class="fas fa-folder-open"></i>
-                        ${repo.name}
+                        ${this.escapeHtml(repo.name)}
                     </a>
                     <span class="project-visibility">${repo.private ? 'Private' : 'Public'}</span>
                 </div>
