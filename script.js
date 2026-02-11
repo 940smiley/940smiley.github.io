@@ -49,6 +49,7 @@ class GitHubPortfolio {
                 }
             } catch (e) {
                 localStorage.removeItem(cacheKey);
+                // Fall through to fetch fresh data
             }
         }
 
