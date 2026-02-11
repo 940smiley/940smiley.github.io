@@ -791,6 +791,8 @@ header {
     border: 3px solid rgba(255, 255, 255, 0.08);
     border-top: 3px solid var(--primary-2);
     border-right: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 .spinner {
     width: 52px;
