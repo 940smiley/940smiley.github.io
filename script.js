@@ -41,15 +41,19 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-                const { data, timestamp } = JSON.parse(cached);
-                // Cache for 1 hour (3600000 ms)
-                if (Date.now() - timestamp < 60 * 60 * 1000) {
-                    console.log('⚡ Bolt: Loading repositories from cache');
-                    return data;
+try {
+                const parsed = JSON.parse(cached);
+                if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
+                    if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
+                        console.log('⚡ Bolt: Loading repositories from cache');
+                        return parsed.data;
+                    }
+                } else {
+                    // Invalid structure, remove corrupted entry
+                    localStorage.removeItem(cacheKey);
                 }
             } catch (e) {
                 localStorage.removeItem(cacheKey);
-                // Fall through to fetch fresh data
             }
         }
 
