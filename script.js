@@ -43,7 +43,7 @@ class GitHubPortfolio {
             try {
                 const { data, timestamp } = JSON.parse(cached);
                 // Cache for 1 hour (3600000 ms)
-                if (Date.now() - timestamp < 3600000) {
+                if (Date.now() - timestamp < 60 * 60 * 1000) {
                     console.log('⚡ Bolt: Loading repositories from cache');
                     return data;
                 }
