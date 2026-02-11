@@ -1,6 +1,6 @@
 class GitHubPortfolio {
     constructor() {
-        this.username = process.env.GITHUB_USERNAME || '940smiley';
+        this.username = '940smiley';
         this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
         this.languageColors = {
             Python: '#3776ab',
@@ -36,16 +36,50 @@ class GitHubPortfolio {
     }
 
     async fetchRepositories() {
-        const response = await fetch(`https://api.github.com/users/${this.username}/repos?sort=updated&per_page=100`);
-        const response = await fetch(` {
+        const cacheKey = `github_repos_${this.username}`;
+        const cached = localStorage.getItem(cacheKey);
+
+        if (cached) {
+            try {
+try {
+                const parsed = JSON.parse(cached);
+                if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
+                    if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
+                        console.log('⚡ Bolt: Loading repositories from cache');
+                        return parsed.data;
+                    }
+                } else {
+                    // Invalid structure, remove corrupted entry
+                    localStorage.removeItem(cacheKey);
+                }
+            } catch (e) {
+                localStorage.removeItem(cacheKey);
+            }
+        }
+
+        const response = await fetch(`https://api.github.com/users/${this.username}/repos?sort=updated&per_page=100`, {
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': '940smiley-portfolio'
             }
         });
+
+        if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
+
+        const data = await response.json();
+
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+                data,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.warn('⚡ Bolt: Failed to save to localStorage', e);
+        }
+
+        return data;
     }
 
     renderRepositories(repos) {
@@ -129,6 +163,7 @@ class GitHubPortfolio {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
 
     showError() {
         ['featuredProjects', 'recentProjects', 'allProjects'].forEach(id => {
