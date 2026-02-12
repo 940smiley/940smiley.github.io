@@ -20,6 +20,12 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+        // Optimization: Reuse Intl.DateTimeFormat to avoid overhead of repeated toLocaleDateString calls
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.init();
     }
 
@@ -41,7 +47,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,7 +89,9 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // Optimization: Use lexicographical comparison for ISO strings (O(1) comparison cost)
+        // instead of creating multiple Date objects per comparison.
+        const sortedRepos = ownRepos.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
 
         const featuredRepos = [];
         const otherRepos = [];
@@ -100,6 +107,12 @@ try {
         this.displaySection('featuredProjects', featuredRepos, true);
         this.displaySection('recentProjects', otherRepos.slice(0, 6));
         this.displaySection('allProjects', otherRepos);
+
+        // Update the repository count metric
+        const countElement = document.getElementById('repo-count');
+        if (countElement) {
+            countElement.textContent = ownRepos.length;
+        }
     }
 
     displaySection(targetId, repos, isFeatured = false) {
@@ -112,11 +125,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Optimization: Use the cached dateFormatter for faster formatting
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -160,9 +170,9 @@ try {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // Optimization: Use regex-based replacement to avoid DOM overhead
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     showError() {
