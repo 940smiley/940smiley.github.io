@@ -20,6 +20,13 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+        // Reuse a single Intl.DateTimeFormat instance to minimize object allocation
+        // and CPU churn during rendering of multiple repository cards.
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.init();
     }
 
@@ -41,7 +48,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,7 +90,8 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // Optimization: Use localeCompare on ISO-8601 strings for O(1) object allocation date sorting
+        const sortedRepos = ownRepos.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
 
         const featuredRepos = [];
         const otherRepos = [];
@@ -100,6 +107,10 @@ try {
         this.displaySection('featuredProjects', featuredRepos, true);
         this.displaySection('recentProjects', otherRepos.slice(0, 6));
         this.displaySection('allProjects', otherRepos);
+
+        // Update repository count in the UI
+        const countEl = document.getElementById('repo-count');
+        if (countEl) countEl.innerText = repos.length;
     }
 
     displaySection(targetId, repos, isFeatured = false) {
@@ -112,11 +123,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Optimization: Use the cached dateFormatter instead of creating a new one via toLocaleDateString
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -159,10 +167,20 @@ try {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    /**
+     * Optimization: Use regex-based escaping instead of DOM manipulation (creating elements)
+     * for high-performance string sanitization during large list rendering.
+     */
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     showError() {
