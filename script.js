@@ -20,13 +20,27 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+        // ⚡ Bolt: Pre-instantiate dateFormatter for reuse during rendering
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.init();
     }
 
     async init() {
         try {
             const repos = await this.fetchRepositories();
-            this.renderRepositories(repos);
+            const ownRepos = repos.filter(repo => !repo.fork);
+
+            // ⚡ Bolt: Update repo count metric in the UI
+            const repoCountElement = document.getElementById('repo-count');
+            if (repoCountElement) {
+                repoCountElement.textContent = ownRepos.length;
+            }
+
+            this.renderRepositories(ownRepos);
         } catch (error) {
             console.error('Error loading repositories:', error);
             this.showError();
@@ -41,7 +55,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -82,9 +95,13 @@ try {
         return data;
     }
 
-    renderRepositories(repos) {
-        const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    renderRepositories(ownRepos) {
+        // ⚡ Bolt: Use string comparison on ISO strings for high-performance sorting without object churn
+        const sortedRepos = ownRepos.sort((a, b) => {
+            if (b.updated_at > a.updated_at) return 1;
+            if (b.updated_at < a.updated_at) return -1;
+            return 0;
+        });
 
         const featuredRepos = [];
         const otherRepos = [];
@@ -112,11 +129,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // ⚡ Bolt: Reuse the single dateFormatter instance and use Date.parse to avoid object churn
+        const updatedDate = this.dateFormatter.format(Date.parse(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -159,10 +173,15 @@ try {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    // ⚡ Bolt: High-performance regex-based escaping to avoid expensive DOM manipulations
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     showError() {
