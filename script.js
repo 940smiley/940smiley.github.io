@@ -1,7 +1,7 @@
 class GitHubPortfolio {
     constructor() {
         this.username = '940smiley';
-        this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
+        this.featuredRepos = new Set(['recoveredtreasures', 'giveawonderfulday', 'trashy-items'].map(r => r.toLowerCase()));
         this.languageColors = {
             Python: '#3776ab',
             JavaScript: '#f7df1e',
@@ -20,6 +20,11 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.init();
     }
 
@@ -41,7 +46,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +88,17 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        const sortedRepos = ownRepos.sort((a, b) => {
+            if (a.updated_at < b.updated_at) return 1;
+            if (a.updated_at > b.updated_at) return -1;
+            return 0;
+        });
 
         const featuredRepos = [];
         const otherRepos = [];
 
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            if (this.featuredRepos.has(repo.name.toLowerCase())) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -112,11 +120,7 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -160,9 +164,14 @@ try {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        return text.toString().replace(/[&<>"']/g, m => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[m]);
     }
 
     showError() {
