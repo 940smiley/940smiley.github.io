@@ -1,7 +1,14 @@
 class GitHubPortfolio {
     constructor() {
         this.username = '940smiley';
-        this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
+        // Optimization: Use a Set for O(1) membership lookups
+        this.featuredRepos = new Set(['recoveredtreasures', 'giveawonderfulday', 'trashy-items']);
+        // Optimization: Reuse a single Intl.DateTimeFormat instance to minimize object allocation
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.languageColors = {
             Python: '#3776ab',
             JavaScript: '#f7df1e',
@@ -41,7 +48,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +90,15 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // Optimization: Sort using direct string comparison for ISO-8601 dates
+        const sortedRepos = ownRepos.sort((a, b) => b.updated_at > a.updated_at ? 1 : b.updated_at < a.updated_at ? -1 : 0);
 
         const featuredRepos = [];
         const otherRepos = [];
 
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            // Optimization: O(1) Set lookup
+            if (this.featuredRepos.has(repo.name.toLowerCase())) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -112,11 +120,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Optimization: Reuse the shared Intl.DateTimeFormat instance
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -160,25 +165,30 @@ try {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // Optimization: Regex-based escaping to avoid DOM manipulation
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
     showError() {
         ['featuredProjects', 'recentProjects', 'allProjects'].forEach(id => {
             const container = document.getElementById(id);
-            container.innerHTML = `
-                <div class="no-repos">
-                    <i class="fas fa-triangle-exclamation"></i>
-                    <p>Unable to load repositories from GitHub right now. Please retry later.</p>
-                </div>
-            `;
+            if (container) {
+                container.innerHTML = `
+                    <div class="no-repos">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <p>Unable to load repositories from GitHub right now. Please retry later.</p>
+                    </div>
+                `;
+            }
         });
     }
 
     hideLoading() {
-        document.getElementById('loading').classList.add('hidden');
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.classList.add('hidden');
+        }
     }
 }
 
