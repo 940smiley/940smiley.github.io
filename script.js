@@ -2,6 +2,12 @@ class GitHubPortfolio {
     constructor() {
         this.username = '940smiley';
         this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
+        this.featuredReposSet = new Set(this.featuredRepos.map(name => name.toLowerCase().replace(/-/g, '')));
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.languageColors = {
             Python: '#3776ab',
             JavaScript: '#f7df1e',
@@ -41,7 +47,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +89,20 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // Optimize: String comparison for ISO-8601 dates is significantly faster than parsing Date objects
+        const sortedRepos = ownRepos.sort((a, b) => {
+            if (b.updated_at > a.updated_at) return 1;
+            if (b.updated_at < a.updated_at) return -1;
+            return 0;
+        });
 
         const featuredRepos = [];
         const otherRepos = [];
 
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            // Optimize: O(1) Set lookup with name normalization (lowercase + hyphen removal)
+            const normalizedName = repo.name.toLowerCase().replace(/-/g, '');
+            if (this.featuredReposSet.has(normalizedName)) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -112,11 +124,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Optimize: Reuse Intl.DateTimeFormat instead of toLocaleDateString() on every call
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -159,10 +168,17 @@ try {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    // Optimize: Regex-based escaping is much faster than DOM manipulation (O(1) relative to layout)
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     showError() {
