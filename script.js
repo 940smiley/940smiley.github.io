@@ -20,6 +20,18 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+
+        // ⚡ Bolt: Initialize performance-optimized utilities
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        this.featuredReposSet = new Set(
+            this.featuredRepos.map(name => name.toLowerCase().replace(/-/g, ''))
+        );
+
         this.init();
     }
 
@@ -41,7 +53,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +95,20 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // ⚡ Bolt: Use lexicographical comparison for ISO dates to avoid object allocation in sort loop
+        const sortedRepos = ownRepos.sort((a, b) => {
+            if (b.updated_at > a.updated_at) return 1;
+            if (b.updated_at < a.updated_at) return -1;
+            return 0;
+        });
 
         const featuredRepos = [];
         const otherRepos = [];
 
+        // ⚡ Bolt: Use O(1) Set lookup with normalized names
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            const normalizedName = repo.name.toLowerCase().replace(/-/g, '');
+            if (this.featuredReposSet.has(normalizedName)) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -112,11 +130,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // ⚡ Bolt: Reuse Intl.DateTimeFormat for better performance
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -159,10 +174,16 @@ try {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    // ⚡ Bolt: Use regex-based escaping to avoid DOM layout churn and improve performance
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, m => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[m]));
     }
 
     showError() {
