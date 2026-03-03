@@ -481,20 +481,18 @@ header {
     gap: 1rem;
 }
 
+/* ⚡ Bolt: Consolidated redundant .project-card blocks into a single optimized definition */
 .project-card {
     position: relative;
-    padding: 1.25rem;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-    backdrop-filter: blur(6px);
+    background: var(--card-color);
+    border-radius: 18px;
+    padding: 1.75rem;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(14px);
     box-shadow: var(--shadow);
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     overflow: hidden;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.75rem;
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
     margin-bottom: 2.25rem;
-    position: relative;
 }
 
 .projects-grid::before {
@@ -511,19 +509,6 @@ header {
 
 .projects-grid:hover::before {
     opacity: 1;
-}
-
-/* Project Cards */
-.project-card {
-    position: relative;
-    background: var(--card-color);
-    border-radius: 18px;
-    padding: 1.75rem;
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(14px);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .project-card::before {
