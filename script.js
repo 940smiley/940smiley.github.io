@@ -1,7 +1,14 @@
 class GitHubPortfolio {
     constructor() {
         this.username = '940smiley';
-        this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
+        // ⚡ Bolt: Use a Set for O(1) membership lookups during repository filtering
+        this.featuredRepos = new Set(['recoveredtreasures', 'giveawonderfulday', 'trashy-items']);
+        // ⚡ Bolt: Reuse a single Intl.DateTimeFormat instance to minimize object allocation
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
         this.languageColors = {
             Python: '#3776ab',
             JavaScript: '#f7df1e',
@@ -41,7 +48,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +90,19 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // ⚡ Bolt: Use string comparison for ISO-8601 dates; it's faster than new Date() instantiation
+        const sortedRepos = ownRepos.sort((a, b) => {
+            if (a.updated_at < b.updated_at) return 1;
+            if (a.updated_at > b.updated_at) return -1;
+            return 0;
+        });
 
         const featuredRepos = [];
         const otherRepos = [];
 
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            // ⚡ Bolt: O(1) membership check using Set
+            if (this.featuredRepos.has(repo.name.toLowerCase())) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -112,11 +124,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // ⚡ Bolt: Reuse the pre-instantiated formatter for better performance
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -159,10 +168,15 @@ try {
         return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
     }
 
+    // ⚡ Bolt: High-performance regex-based HTML escaping to avoid layout churn
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (typeof text !== 'string') return text;
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     showError() {
