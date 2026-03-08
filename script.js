@@ -1,7 +1,9 @@
 class GitHubPortfolio {
     constructor() {
         this.username = '940smiley';
-        this.featuredRepos = ['recoveredtreasures', 'giveawonderfulday', 'trashy-items'];
+        // Use Set for O(1) membership checks during rendering
+        // Names are normalized (lowercase, no hyphens) for reliable matching
+        this.featuredRepos = new Set(['recoveredtreasures', 'giveawonderfulday', 'trashyitems']);
         this.languageColors = {
             Python: '#3776ab',
             JavaScript: '#f7df1e',
@@ -20,6 +22,14 @@ class GitHubPortfolio {
             Dart: '#0175c2',
             Shell: '#89e051'
         };
+        // Reuse a single Intl.DateTimeFormat instance to minimize object allocation
+        this.dateFormatter = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        // Cache DOM element to avoid repeated lookups
+        this.repoCountEl = document.getElementById('repo-count');
         this.init();
     }
 
@@ -41,7 +51,6 @@ class GitHubPortfolio {
 
         if (cached) {
             try {
-try {
                 const parsed = JSON.parse(cached);
                 if (parsed && Array.isArray(parsed.data) && typeof parsed.timestamp === 'number') {
                     if (Date.now() - parsed.timestamp < 60 * 60 * 1000) {
@@ -84,13 +93,15 @@ try {
 
     renderRepositories(repos) {
         const ownRepos = repos.filter(repo => !repo.fork);
-        const sortedRepos = ownRepos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        // Use string comparison for ISO-8601 dates (more performant than new Date() objects)
+        const sortedRepos = ownRepos.sort((a, b) => b.updated_at > a.updated_at ? 1 : (b.updated_at < a.updated_at ? -1 : 0));
 
         const featuredRepos = [];
         const otherRepos = [];
 
         sortedRepos.forEach(repo => {
-            if (this.featuredRepos.includes(repo.name.toLowerCase())) {
+            // Use normalized name for reliable membership checks
+            if (this.featuredRepos.has(this.normalizeName(repo.name))) {
                 featuredRepos.push(repo);
             } else {
                 otherRepos.push(repo);
@@ -100,6 +111,11 @@ try {
         this.displaySection('featuredProjects', featuredRepos, true);
         this.displaySection('recentProjects', otherRepos.slice(0, 6));
         this.displaySection('allProjects', otherRepos);
+
+        // Update repo count in UI
+        if (this.repoCountEl) {
+            this.repoCountEl.textContent = ownRepos.length;
+        }
     }
 
     displaySection(targetId, repos, isFeatured = false) {
@@ -112,11 +128,8 @@ try {
     }
 
     createProjectCard(repo, isFeatured = false) {
-        const updatedDate = new Date(repo.updated_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Reuse formatter for better performance
+        const updatedDate = this.dateFormatter.format(new Date(repo.updated_at));
 
         const description = repo.description || 'No description provided yet — stay tuned for updates!';
         const language = repo.language || 'Unknown';
@@ -160,9 +173,14 @@ try {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        // Regex-based escaping is faster than creating DOM elements and avoids layout churn
+        if (typeof text !== 'string') return text;
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     showError() {
@@ -179,6 +197,10 @@ try {
 
     hideLoading() {
         document.getElementById('loading').classList.add('hidden');
+    }
+
+    normalizeName(name) {
+        return name.toLowerCase().replace(/-/g, '');
     }
 }
 
