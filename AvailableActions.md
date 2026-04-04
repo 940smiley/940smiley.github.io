@@ -8,6 +8,7 @@
 - **Formatting**: `actions/setup-node` + `prettier --check` in CI to keep HTML/CSS/JS consistent.
 
 Example trigger (Pages deploy):
+
 ```yaml
 name: pages-deploy
 on:
